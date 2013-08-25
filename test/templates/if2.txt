@@ -1,0 +1,7 @@
+{#if index > 0}
+  yeah
+{#elseif index > 1 }
+  bla
+{#else}
+  oops
+{/if}

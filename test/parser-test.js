@@ -1,5 +1,6 @@
 var fs = require("fs");
 var parser = require("../lib/parser");
+var jit = require("../lib/jit");
 var result
 // result = parser.parse("{ varname }");
 // console.log(result[0])
@@ -42,7 +43,7 @@ var result
 // console.log(result[0])
 
 
-result = parser.parse(fs.readFileSync("./templates/simple.txt").toString());
+result = parser.parse(fs.readFileSync("./templates/if6.txt").toString());
 
 var ast = [];
 var next = result[0].next;
@@ -74,7 +75,6 @@ function walk(next){
       list = ["each"];
     }else if(next.name == "@eachend"){
       ast.push(list);
-      // resetting;
       pointer = ast;
     }else if(next.name == "@each-head-start"){
       eachComprehension = [];
@@ -95,9 +95,12 @@ function walk(next){
     }else if(next.name == "@ifstart"){
       list = ["if"];
       ifExpressions = [];
-
-      pointer = ifExpression;
+      ifExpression = [];
+      ifPredict = [];
+      pointer = ifPredict;
     }else if(next.name == "@ifend"){
+      // ifExpression.push(ifPredict);
+
       list.push(ifExpressions);
       //若有else clause 的话
       ifElse.length && list.push(ifElse);
@@ -106,17 +109,18 @@ function walk(next){
       // resetting;
       pointer = ast;
     }else if(next.name == "@elseifstart"){
-    }else if(next.name == "@elseifend"){
-    }else if(next.name == "@ifexpstart"){
       ifExpression = [];
       ifPredict = [];
       pointer = ifPredict;
-    }else if(next.name == "@ifexpend"){
-      ifExpression.push(ifPredict);
+    }else if(next.name == "@elseifend"){
+      //do nothing
+    }else if(next.name == "expression"){
+      add(["expression",next.value]);
     }else if(next.name == "@ifbodystart"){
       ifYes = [];
       pointer = ifYes;
     }else if(next.name == "@ifbodyend"){
+      ifExpression.push(ifPredict);
       ifExpression.push(ifYes);
       ifExpressions.push(ifExpression);
     }else if(next.name == "@elsestart"){
@@ -128,16 +132,28 @@ function walk(next){
     }else if(next.name == "number"){
       add(["number",next.value]);
     }else if(next.name == "string"){
-      add(["string",next.value]);
-    }else if(next.name == "operation"){
-      add(["op",next.value]);
+      if(next.value == "\n"){
+        add(["string",'"\\n"']);
+      }else{
+        var strs = next.value.split("\n");
+        for(var i=0,l = strs.length;i<l;i++){
+          if(strs[i]){
+            add(["string",'"\\n"']);
+            add(["string",strs[i]]);
+          }
+        }
+      }
     }
     next = next.next;
   }
+
   function add(list,con){
     var container = con || pointer || ast;
     container.push(list);
   }
 }
 walk(next);
-console.log(JSON.stringify(ast))
+// console.log(JSON.stringify(ast))
+console.log(jit.to_js(ast));
+// console.log(jit.compile(ast));
+

@@ -77,3 +77,11 @@
 	  s += _foo;
 	  s += '\n';
 	}
+
+- `set` in template
+
+    {{#set name = val}}
+
+- `set` in js
+
+    var name = val;

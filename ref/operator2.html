@@ -1,0 +1,410 @@
+<html>
+  <head>
+    <meta name="Author" content="Brian Ziman">
+
+    <title>Infix Calculator/Expression Evaluator JavaScript Example</title>
+
+    <style>
+     <!--
+     input { text-align : right }
+     option { width : 150px }
+     // -->
+    </style>
+    <script>
+     <!--
+
+     //
+     // All of this code was created and is owned by Brian Ziman.
+     //
+     // This product is free software; you can redistribute it and/or modify
+     // it under the terms of the GNU General Public License as published by
+     // the Free Software Foundation; either version 2, or (at your option)
+     // any later version.       
+     // You can find this license at http://www.gnu.org/copyleft/gpl.html.
+     //
+     // This code is provided WITHOUT ANY WARRANTY; without even the implied 
+     // warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+     // See the GNU General Public License for more details.
+     //
+     // Don't use my code to cheat on your homework.
+     //
+
+
+     function myalert(foo) {
+       if(document.calc.debug.checked) alert(foo);
+     }
+
+     function clearAll() {
+       var foo = document.calc.log;
+       for(var i = foo.length-1;i > 0;i--) {
+         foo.options[i] = null;
+       }
+       foo.options[0].text = "";
+     }
+
+     function clearSel() {
+       var foo = document.calc.log;
+       for(var i=0;i<foo.options.length;i++) {
+         if(foo.options[i].selected) {
+           if(foo.options.length == 1) {
+             foo.options[i].text="";
+           } else {
+             foo.options[i] = null;
+           }
+         }
+       }
+     }
+
+     function loadSelected(foo) {
+       for(var i=0;i<foo.options.length;i++) {
+         if(foo.options[i].selected && foo.options[i].text != "") {
+           document.calc.buffer.value = foo.options[i].value;
+           return;
+         }
+       }
+     }
+
+     var isResult = false;
+
+     function ceval(foo) {
+       if(document.calc.buffer.value == "0.") {
+         document.calc.buffer.value = "";
+       }
+       if(foo == "C") {
+         document.calc.buffer.value = "0.";
+         isResult = false;
+       } else if(foo == "B") {
+         var s = document.calc.buffer.value;
+         var l = s.length - 1;
+         document.calc.buffer.value = s.substring(0, l);
+         isResult = false;
+       } else if(foo == "=") {
+         isResult = true;
+         var ll = document.calc.log.options.length;
+         var val = document.calc.buffer.value
+         for(var i=0;i<ll;i++) {
+           if(document.calc.log.options[i].text == val) 
+           { 
+            val = null;
+            break;
+            }
+         }
+         if(val != null && val.length > 0) {
+           if(document.calc.log.options[ll-1].text == "") { ll--; }
+           document.calc.log.options[ll] = 
+           new Option(val, val, false, false);
+         }
+         
+         // eval time
+         var s = document.calc.buffer.value;
+         var rstack = new Array();
+         var opstack = new Array();
+         // 1 + 2 * 3 * (2 + 5)...
+         // 1 2 3 * 2 5 + * +
+
+         // 1 6 7 
+         //        *  
+         //        +
+
+         // 2+(3+(4+5))
+
+         // - 3 + - 4  ==> -7
+         // binary +/- follows
+         //  number
+         //  )
+
+         var tmp = 0;
+         var hasNumber = false;
+         var hasDec = false;
+         var decPlace = 1;
+         for(var i = 0; i < s.length ; i++) {
+           switch(s.charAt(i)) {
+             case "0": case "1": case "2": case "3": case "4":
+             case "5": case "6": case "7": case "8": case "9":
+               if(hasDec == true) {
+                 tmp = tmp + (new Number(s.charAt(i)) / decPlace);
+                 decPlace = decPlace * 10;
+             } else {
+                 tmp = tmp * 10 + new Number(s.charAt(i));
+             }
+               hasNumber = true;
+               //myalert("building number "+tmp);
+               break;
+             case ".":
+               hasDec = true;
+               decPlace = 10;
+               break;
+             case "+": case "-":
+               if(hasNumber == true) {
+                 rstack.push(tmp);
+                 tmp = 0;
+                 hasNumber = false;
+                 hasDec = false;
+                 decPlace = 1;
+             }
+               if(((s.charAt(i-1) >= "0") &&
+                   (s.charAt(i-1) <= "9")) || 
+                  s.charAt(i-1) == "."   ||
+                  s.charAt(i-1) == ")") {
+                 // then it's binary +/-
+                 for(q = opstack.pop(); q!=null ; q = opstack.pop()) {
+                   if(q == "u") {
+                     a = rstack.pop();
+                     c = -a;
+                     rstack.push(c);
+                 } else if(q == "*") {
+                     b = rstack.pop();
+                     a = rstack.pop();
+                     c = a * b;
+                     rstack.push(c);
+                 } else if(q == "/") {
+                     b = rstack.pop();
+                     a = rstack.pop();
+                     c = a / b;
+                     rstack.push(c);
+                 } else if(q == "-") {
+                     b = rstack.pop();
+                     a = rstack.pop();
+                     if(a == null) a = 0;
+                     c = a - b;
+                     rstack.push(c);
+                 } else if(q == "+") {
+                     b = rstack.pop();
+                     a = rstack.pop();
+                     if(a == null) a = 0;
+                     c = a + b;
+                     rstack.push(c);
+                 } else {
+                     opstack.push(q);
+                     break;
+                 }
+                   myalert("rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+               }
+
+                 opstack.push(s.charAt(i));
+             } else if(s.charAt(i) == "+") {
+                 // it's a unary +, ignore
+                 break;
+             } else {
+                 // it's unary minus
+                 opstack.push("u");
+             }
+               myalert("rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+               break;
+             case "*": case "/":
+               if(hasNumber == true) {
+                 rstack.push(tmp);
+                 tmp = 0;
+                 hasNumber = false;
+                 hasDec = false;
+                 decPlace = 1;
+             }
+               myalert("rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+               q = opstack.pop();
+               if(q == "u") {
+                 a = rstack.pop();
+                 c = -a;
+                 rstack.push(c);
+             } else if(q == "*") {
+                 b = rstack.pop();
+                 a = rstack.pop();
+                 c = a * b;
+                 rstack.push(c);
+             } else if(q == "/") {
+                 b = rstack.pop();
+                 a = rstack.pop();
+                 c = a / b;
+                 rstack.push(c);
+             } else {
+                 opstack.push(q);
+             }
+
+               opstack.push(s.charAt(i));
+               myalert("rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+               break;
+             case "(":
+               if(hasNumber == true) {
+                 rstack.push(tmp);
+                 tmp = 0;
+                 hasNumber = false;
+                 hasDec = false;
+                 decPlace = 1;
+                 q = opstack.pop();
+                 if(q == "u") {
+                   a = rstack.pop();
+                   c = -a;
+                   rstack.push(c);
+               } else {
+                   opstack.push(q);
+               }
+                 opstack.push("*");
+             } else if(s.charAt(i-1) == ")") {
+                 opstack.push("*");
+             }
+
+               opstack.push("(");
+               myalert("rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+               break; 
+             case ")":
+               if(hasNumber == true) {
+                 rstack.push(tmp);
+                 tmp = 0;
+                 hasNumber = false;
+                 hasDec = false;
+                 decPlace = 1;
+             }
+               while((q = opstack.pop()) != "(") {
+                 if(q == null) break;
+                 if(q == "u") {
+                   a = rstack.pop();
+                   c = -a;
+                   rstack.push(c);
+               } else if(q == "*") {
+                   b = rstack.pop();
+                   a = rstack.pop();
+                   c = a * b;
+                   rstack.push(c);
+               } else if(q == "/") {
+                   b = rstack.pop();
+                   a = rstack.pop();
+                   c = a / b;
+                   rstack.push(c);
+               } else if(q == "+") {
+                   b = rstack.pop();
+                   a = rstack.pop();
+                   if(a == null) a = 0;
+                   c = a + b;
+                   rstack.push(c);
+               } else if(q == "-") {
+                   b = rstack.pop();
+                   a = rstack.pop();
+                   if(a == null) a = 0;
+                   c = a - b;
+                   rstack.push(c);
+               } else {
+                   myalert ("Here's the problem.");
+               }
+                 myalert("here( rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+             }
+               //while((q = rstack.pop())!=null) { myalert(q); }
+               break;
+               default:
+               myalert("uh oh!");
+           }
+         }
+           if(hasNumber == true) {
+             rstack.push(tmp);
+             tmp = 0;
+             hasNumber = false;
+             hasDec = false;
+             decPlace = 1;
+         }
+           while(true) {
+             q = opstack.pop();
+             if(q == null || q == "(") { break; }
+             if(q == "u") {
+               a = rstack.pop();
+               c = -a;
+               rstack.push(c);
+           } else if(q == "*") {
+               b = rstack.pop();
+               a = rstack.pop();
+               c = a * b;
+               rstack.push(c);
+           } else if(q == "/") {
+               b = rstack.pop();
+               a = rstack.pop();
+               c = a / b;
+               rstack.push(c);
+           } else if(q == "+") {
+               b = rstack.pop();
+               a = rstack.pop();
+               if(a == null) a = 0;
+               c = a + b;
+               rstack.push(c);
+           } else if(q == "-") {
+               b = rstack.pop();
+               a = rstack.pop();
+               if(a == null) a = 0;
+               c = a - b;
+               rstack.push(c);
+           }
+             myalert("rstack = ("+rstack.toString()+"), opstack = ("+opstack.toString()+")");
+         }
+           document.calc.buffer.value = rstack.pop();
+       } else {
+           if((isResult == true) &&
+              ((foo >= "0" && foo <= "9") || foo == ".")) {
+             document.calc.buffer.value = foo;
+         } else {
+             document.calc.buffer.value = document.calc.buffer.value + foo;
+         }
+           isResult = false;
+       }
+     }
+     // -->
+    </script>
+  </head>
+  <body>
+    <h1>Infix Calculator/Expression Evaluator</h1>
+    <table width=600><td><td>
+Welcome to the Infix Calculator and Expression Evaluator JavaScript
+example.  While the algorithms for an infix expression evaluator are not
+difficult, it seemed, in a fit of boredom, an interesting challenge to
+implement these algorithms in JavaScript and the user interface in HTML.
+      <p>
+For instructions and more details, please see <a href="#below">below</a>.
+      </p>
+      <form name="calc">
+        <table>
+          <tr>
+            <td>
+              <table border=1>
+                <tr>
+                  <td colspan=5>
+                    <input type=text name="buffer" textalign=right value="0.">
+                  </td>
+                  <tr>
+                    <td><input type=button onClick="ceval(this.name);" name="7" value="  7  "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="8" value="  8  "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="9" value="  9  "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="B" value="BS "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="C" value=" C  "></td></tr>
+                    <tr>
+                      <td><input type=button onClick="ceval(this.name);" name="4" value="  4  "></td>
+                      <td><input type=button onClick="ceval(this.name);" name="5" value="  5  "></td>
+                      <td><input type=button onClick="ceval(this.name);" name="6" value="  6  "></td>
+                      <td><input type=button onClick="ceval(this.name);" name="(" value="  (   "></td>
+                      <td><input type=button onClick="ceval(this.name);" name=")" value="  )   "></td></tr>
+                </tr>
+                <tr>
+                  <td><input type=button onClick="ceval(this.name);" name="1" value="  1  "></td>
+                  <td><input type=button onClick="ceval(this.name);" name="2" value="  2  "></td>
+                  <td><input type=button onClick="ceval(this.name);" name="3" value="  3  "></td>
+                  <td><input type=button onClick="ceval(this.name);" name="/" value="  /   "></td>
+                  <td><input type=button onClick="ceval(this.name);" name="*" value="  *  "></td>
+                  <tr>
+                    <td><input type=button onClick="ceval(this.name);" name="0" value="  0 "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="." value="   .  "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="+" value="  +  "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="-" value="  -   "></td>
+                    <td><input type=button onClick="ceval(this.name);" name="=" value=" =  "></td></tr>
+                    <tr><td colspan=5><input type=checkbox name=debug>Debugging mode</td></tr>
+              </table>
+            </td>
+            <td>
+              <select name=log size=9 onClick="loadSelected(this);">
+                <option></option>
+              </select>
+              <br>
+              <input type=button value="Clear All" onClick="clearAll();">
+              <input type=button value="Clear Selected" onClick="clearSel();">
+            </td>
+                </tr>
+        </table>
+      </form>
+    </td>
+          </tr>
+</table>
+  </body>
+</html>

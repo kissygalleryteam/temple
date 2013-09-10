@@ -1,8 +1,0 @@
-{#each items as item index}
-  {index}
-
-  {#each item as iitem iindex}
-    {iindex}   
-  {/each}
-
-{/each}

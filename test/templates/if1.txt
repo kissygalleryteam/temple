@@ -1,5 +1,0 @@
-{#if index > 0}
-  yeah
-{#else}
-  oops
-{/if}

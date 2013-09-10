@@ -1,8 +1,0 @@
-{#each items as item index}
-hi{name}{index}
-
-{#if index > (1 + 2)}
-  yeah
-{/if}
-
-{/each}aa

@@ -9,13 +9,14 @@
     <script type="text/javascript" src="../../lib/compile2js.js"></script>
   </head>
   <body>
-    <script id="tpl" type="text/template">
-     hi {name}
-    </script>
+
+<script id="tpl" type="text/template">
+hi {name}
+</script>
     
     <script type="text/javascript">
-     var ast = MEngine.toAST(document.getElementById("tpl").innerHTML);
-     console.log(MEngine.to_js(ast));
+     console.log(MEngine.to_js('hi {name}'));
+     //console.log(MEngine.compile(document.getElementById("tpl").innerHTML));
     </script>
   </body>
 </html>

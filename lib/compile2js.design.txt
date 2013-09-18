@@ -9,3 +9,9 @@
 [["if",
 		[[["(index && 1) "],[["string","\"\\n\""],["string","  yeah"]]]],		//if exps
 		[["string","\"\\n\""],["string","  oops"]]]]							//else clause
+
+==================== include ====================
+
+["include","sub_name"]
+
+==================== include ====================

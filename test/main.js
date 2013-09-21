@@ -1,161 +1,214 @@
-;;(function($){
-     // by 司徒正美
-     /**
-      * 入口函数
-      * @param {string} id CSS表达式(用于模取元素然后取得里面的innerHTML作为源码)
-      * @param {Object} data  数据包
-      * @return  {Object} opts 可选参数,可以自由制定你的定界符
-      */
-     $.ejs = function( id,data,opts){
-       var el, source
-       if( !$.ejs.cache[ id] ){
-         opts = opts || {}
-         var doc = opts.doc || document;
-         data = data || {};
-         el = $(id, doc)[0];
-         if(! el )
-           throw "can not find the target element";
-         source = el.innerHTML;
-         if(!(/script|textarea/i.test(el.tagName))){
-           source = $.ejs.filters.unescape( source );
-         }
-         var fn = $.ejs.compile( source, opts );
-         $.ejs.cache[ id ] = fn;
-         console.log(fn+"")
-       }
+var Parser = require('rd-parse')
 
-       return $.ejs.cache[ id ]( data );
-     }
-     var isNodejs = typeof exports == "object";
-     $.ejs.cache = {};
-     $.ejs.filters = {
-       //自己可以在这里添加更多过滤器,或者可以到这里面自由提取你喜欢的工具函数
-       //https://github.com/RubyLouvre/newland/blob/master/system/lang.js
-       escapeHTML:  function (target) {
-         return target.replace(/&/g,'&amp;')
-                .replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;')
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#39;");
-       },
-       unescape: function(target){
-         return  target.replace(/"/g,'"')
-                 .replace(/</g,'<')
-                 .replace(/>/g,'>')
-                 .replace(/&/g, "&"); //处理转义的中文和实体字符
-         return target.replace(/&#([\d]+);/g, function($0, $1){
-                  return String.fromCharCode(parseInt($1, 10));
-                });
-       }
-     };
-     $.ejs.compile = function( source, opts){
-       opts = opts || {}
-       var open  = opts.open  || isNodejs ? "<%" : "<&";
-       var close = opts.close || isNodejs ? "%>" : "&>";
-       var helperNames = [], helpers = []
-       for(var name in opts){
-         if(opts.hasOwnProperty(name) && typeof opts[name] == "function"){
-           helperNames.push(name)
-           helpers.push( opts[name] )
-         }
-       }
-       var flag = true;//判定是否位于前定界符的左边
-       var codes = []; //用于放置源码模板中普通文本片断
-       var time = new Date * 1;// 时间截,用于构建codes数组的引用变量
-       var prefix = " ;r += txt"+ time +"[" //渲染函数输出部分的前面
-       var postfix = "];"//渲染函数输出部分的后面
-       var t = "return function(data){ try{var r = '',line"+time+" = 0;";//渲染函数的最开始部分
-       var rAt = /(^|[^\w\u00c0-\uFFFF_])(@)(?=\w)/g;
-       var rstr = /(['"])(?:\\[\s\S]|[^\ \\r\n])*?\1/g // /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/
-       var rtrim = /(^-|-$)/g;
-       var rmass = /mass/
-         var js = []
-       var pre = 0, cur, code, trim
-       for(var i = 0, n = source.length; i < n; ){
-         cur = source.indexOf( flag ? open : close, i);
-         if( cur < pre){
-           if( flag ){//取得最末尾的HTML片断
-             t += prefix + codes.length + postfix
-             code = source.slice( pre+ close.length );
-             if(trim){
-               code = $.trim(code)
-               trim = false;
-             }
-             codes.push( code );
-           }else{
-             $.error("发生错误了");
-           }
-           break;
-         }
-         code = source.slice(i, cur );//截取前后定界符之间的片断
-         pre = cur;
-         if( flag ){//取得HTML片断
-           t += prefix + codes.length + postfix;
-           if(trim){
-             code = $.trim(code);
-             trim = false;
-           }
-           codes.push( code );
-           i = cur + open.length;
-         }else{//取得javascript罗辑
-           js.push(code)
-           t += ";line"+time+"=" +js.length+";"
-           switch(code.charAt(0)){
-             case "="://直接输出
-             code = code.replace(rtrim,function(){
-                      trim = true;
-                      return ""
-                    });
-             code = code.replace(rAt,"$1data.");
-             if( code.indexOf("|") > 1 ){//使用过滤器
-               var arr = []
-               var str = code.replace(rstr, function(str){
-                           arr.push(str);//先收拾所有字符串字面量
-                           return 'mass'
-                         }).replace(/\|\|/g,"@");//再收拾所有短路或
-               if(str.indexOf("|") > 1){
-                 var segments = str.split("|")
-                 var filtered = segments.shift().replace(/\@/g,"||").replace(rmass, function(){
-                                  return arr.shift();
-                                });
-                 for( var filter;filter = arr.shift();){
-                   segments = filter.split(":");
-                   name = segments[0];
-                   args = "";
-                   if(segments[1]){
-                     args = ', ' + segments[1].replace(rmass, function(){
-                                     return arr.shift();//还原
-                                   })
-                   }
-                   filtered = "$.ejs.filters."+ name +"(" +filtered + args+")"
-                 }
-                 code = "="+ filtered
-               }
-             }
-             t += " ;r +" +code +";"
-             break;
-             case "#"://注释,不输出
-             break
-             case "-":
-             default://普通逻辑,不输出
-             code = code.replace(rtrim,function(){
-                      trim = true;
-                      return ""
-                    });
-             t += code.replace(rAt,"$1data.")
-             break
-           }
-           i = cur + close.length;
-         }
-         flag = !flag;
-       }
-       t += " return r; }catch(e){ $.log(e);\n$.log(js"+time+"[line"+time+"-1]) }}"
-       //  console.log(t)
-       var body = ["txt"+time,"js"+time, "filters"]
-       var fn = Function.apply(Function, body.concat(helperNames,t) );
-        var args = [codes, js, $.ejs.filters];
+var Y = function (gen) {
+  return (function(f) {
+            return f(f);
+          })(function(f) {
+               return gen(function() {
+                        return f(f).apply(null, arguments);
+                      });
+             });
+};
 
-        return fn.apply(this, args.concat(helpers));
+var Grammar = function(All, Any, Plus, Optional, Char, Capture){
+
+  var isarray = Array.isArray ? Array.isArray:function(s){
+                                                return toString.call(s) === "[object Array]";
+                                              };
+  var each = Array.forEach ? Array.forEach:function(arr,fn){
+                                             for(var i=0,l=arr.length;i<l;i++){
+                                               fn(arr[i]);
+                                             }
+                                           };
+  var blank = Char(/\s/);
+  var optblank = Optional(blank);
+  var blanks = Plus(blank);
+  var optblanks = Optional(blanks);
+
+  var Str = function(str){
+    var as;
+    if(!isarray(str)){
+      as = str.split('');
+    }else{
+      as = str;
     }
-    return $.ejs;
-})(jQuery)
+    var rules = [];
+    each(as,function(c){
+      rules.push(Char(new RegExp(c)));
+    });
+    return All.apply(null,rules);
+  }
+
+  var var_pre = Plus(Any(Char(/[a-zA-Z_$]/)));
+  var var_body = Optional(Plus(Any(Char(/[a-zA-Z_$0-9]/))));
+  var varname = All(var_pre,var_body);
+
+  // Number ::= 0
+  //        ::= 123
+  //        ::= 123
+  //
+  var zero = Char(/0/);
+  var digit = Char(/\d/);
+  var digit19 = Char(/[123456789]/);
+  var digits =  Y(function(digits){
+        return Any(All(digit,digits),digit)
+      });
+  var sign = Char(/[\+\-]/);
+  var eE = Char(/[eE]/);
+
+  var integer = Any(All(digit19,Optional(digits)),zero);
+
+  var exponent = All(eE,Optional(sign),integer);
+
+  var floating = All(
+    integer,
+    All(Char(/\./),Optional(digits))
+  );
+
+  var number_pre = Any(
+    floating,
+    integer
+  );
+  var unsigned = Any(All(number_pre,Optional(exponent)),
+                     floating,
+                     integer);
+  var _Number = All(Optional(sign),optblanks,unsigned);
+  var _Bool = Any(Str("true"),Str("false"));
+  var _NameSpace = Y(function(ns){
+                     return Any(
+                       All(varname,Char(/\./),ns),
+                       varname
+                     );
+                   });
+
+    var _SingleAtom = Any(
+      Str(["\\\\","'"]),
+      Char(/[^']/)
+    );
+    var _SingleStringContent = Plus(_SingleAtom);
+
+    var _StringSingle = All(
+      Char(/'/),
+      Optional(
+        Capture(_SingleStringContent,"string")
+      ),
+      Char(/'/)
+    );
+
+    var _DoubleAtom = Any(
+      Str(['\\\\','"']),
+      Char(/[^"]/)
+    );
+    var _DoubleStringContent = Plus(_DoubleAtom);
+    var _StringDouble = All(
+      Char(/"/),
+      Optional(
+        Capture(_DoubleStringContent,"string")
+      ),
+      Char(/"/)
+    );
+    var _String = Any(_StringSingle,_StringDouble);
+
+  //==================== tools ====================
+
+  var proton = Any(
+      _Number,
+      _NameSpace,
+      _String
+  )
+
+  // atom ::= Number
+  //      ::= String
+  //      ::= Bool
+  //      ::= NameSpace
+  //
+
+  // exp ::= atom
+  //     ::= !atom
+  //     ::= (atom)
+  //     ::= !(atom)
+  //     ::= atom op atom
+  //     ::= (atom op atom)
+  //     ::= (atom) op (atom)
+  //     ::= atom op exp
+  //     ::= (atom op exp)
+
+  // op ::= ==
+  //    ::= ===
+  //    ::= >=
+  //    ::= <=
+  //    ::= +=
+  //    ::= -=
+  //    ::= &&
+  //    ::= ||
+  //    ::= +
+  //    ::= -
+  //    ::= *
+  //    ::= /
+  //    ::= %
+  //    ::= |
+  //    ::= >
+  //    ::= <
+  //    ::= ^
+  //
+    , op = Any(
+      All(Char(/=/),Char(/=/)),
+      All(Char(/=/),Char(/=/),Char(/=/)),
+      All(Char(/>/),Char(/=/)),
+      All(Char(/</),Char(/=/)),
+      All(Char(/\+/),optblanks,Char(/=/)),
+      All(Char(/\-/),optblanks,Char(/=/)),
+      All(Char(/\|/),Char(/\|/)),
+      All(Char(/&/),Char(/&/)),
+      Char(/[\+\-\*\/%><\|\^]/)
+    );
+  var unary = Char(/[\+\-!]/);
+
+  var atom = Any(
+    _Bool,
+    All(unary,proton),
+    proton
+  );
+
+  var _ComplexExp = Y(function(exp){
+                      var complex = Any(
+                        // 函数调用
+                        // escape(a+b) + c
+                        All(Optional(unary),optblanks,_NameSpace,optblanks,Char(/\(/),optblanks,Any(All(atom,exp),atom),optblanks,Char(/\)/),optblanks,op,optblanks,exp),
+                        // 函数调用
+                        // escape(a+b)
+                        All(Optional(unary),optblanks,_NameSpace,optblanks,Char(/\(/),optblanks,Any(All(atom,exp),atom),optblanks,Char(/\)/)),
+                        // (a+b)/c
+                        // !(a+b)/c
+                        All(Optional(unary),optblanks,Char(/\(/),optblanks,atom,optblanks,op,optblanks,exp,optblanks,Char(/\)/),optblanks,op,optblanks,exp),
+                        // (a+b/c)
+                        // !(a+b/c)
+                        All(Optional(unary),optblanks,Optional(_NameSpace),optblanks,Char(/\(/),optblanks,atom,optblanks,op,optblanks,exp,optblanks,Char(/\)/)),
+                        // a+b+c
+                        All(atom,optblanks,op,optblanks,exp));
+                      return Any(
+                        complex,
+                        atom);
+                    });
+  _ComplexExp=Capture(_ComplexExp,"exp");
+  return _ComplexExp;
+}
+
+var parser = new Parser(Grammar);
+var ret;
+ret = parser.parse("(a +b  +c+(d/e))/2");
+ret = parser.parse("!a");
+ret = parser.parse("!a-b");
+ret = parser.parse("!(a+b)+c+2");
+ret = parser.parse("a&&b");
+ret = parser.parse("a||b");
+ret = parser.parse("a|2");
+ret = parser.parse("1|2");
+ret = parser.parse("1^2");
+ret = parser.parse("a + 'abc'");
+ret = parser.parse("a += 'abc'");
+ret = parser.parse("!escape( a + b)");
+ret = parser.parse("!escape(a+b) + d + bla");
+console.log(
+  ret[1].value
+)

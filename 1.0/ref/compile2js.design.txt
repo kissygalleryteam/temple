@@ -85,3 +85,21 @@
 - `set` in js
 
     var name = val;
+
+====================  each  ====================
+
+[["each",
+		 ["items","item","index"],
+		 [eachbody]]]
+
+====================   if   ====================
+
+[["if",
+		[[["(index && 1) "],[["string","\"\\n\""],["string","  yeah"]]]],		//if exps
+		[["string","\"\\n\""],["string","  oops"]]]]							//else clause
+
+==================== include ====================
+
+["include","sub_name"]
+
+==================== include ====================

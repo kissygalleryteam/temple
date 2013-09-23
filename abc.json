@@ -1,0 +1,14 @@
+{
+    "name": "interp",
+    "version": "1.0",
+    "desc": "",
+    "cover": "",
+    "tag":"",
+    "author": {
+        "name": "cookieu@gmail.com",
+        "email": "cookieu@gmail.com",
+        "page": ""
+    },
+    "type": "kissy-gallery",
+    "type-url": "http://gallery.kissyui.com/guide"
+}

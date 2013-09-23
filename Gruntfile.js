@@ -15,23 +15,36 @@ module.exports = function(grunt) {
         // kmc打包任务，默认情况，入口文件是index.js，可以自行添加入口文件，在files下面
         // 添加
         kmc: {
+          main: {
             options: {
-                packages: [
-                    {
-                        name: '<%= pkg.name %>',
-                        path: '../'
-                    }
-                ],
-                map: [["<%= pkg.name %>/", "gallery/<%= pkg.name %>/"]]
+              packages: [{
+                name: 'gallery',
+                path: '../../',
+                charset: 'utf-8'
+              }]
             },
-            main: {
-                files: [
-                    {
-                        src: "<%= pkg.version %>/index.js",
-                        dest: "<%= pkg.version %>/build/index.js"
-                    }
-                ]
-            }
+            files: [
+              {
+                src: ["<%= pkg.version %>/index.js"],
+                dest: "<%= pkg.version %>/build/index.js"
+              },
+              {
+                src: ["<%= pkg.version %>/compile2js.js"],
+                dest: "<%= pkg.version %>/build/compile2js.js"
+              },
+              {
+                src: ["<%= pkg.version %>/grammar.js"],
+                dest: "<%= pkg.version %>/build/grammar.js"
+              },{
+                src: ["<%= pkg.version %>/toast.js"],
+                dest: "<%= pkg.version %>/build/toast.js"
+              },
+              {
+                src: ["<%= pkg.version %>/rdparser.js"],
+                dest: "<%= pkg.version %>/build/rdparser.js"
+              }
+            ]
+          }
         },
         // 打包后压缩文件
         // 压缩文件和入口文件一一对应
@@ -44,7 +57,7 @@ module.exports = function(grunt) {
             },
             base: {
                 files: {
-                    '<%= pkg.version %>/build/index-min.js': ['<%= pkg.version %>/build/index.js']
+                    '<%= pkg.version %>/build/index-min.js': ['<%= pkg.version %>/build/rdparser.js','<%= pkg.version %>/build/toast.js','<%= pkg.version %>/build/compile2js.js','<%= pkg.version %>/build/grammar.js','<%= pkg.version %>/build/index.js']
                 }
             }
         }

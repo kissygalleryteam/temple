@@ -1,3 +1,9 @@
+/*
+combined files : 
+
+gallery/temple/1.0/index
+
+*/
 /**
  * @fileoverview
  * @author tom<cookieu@gmail.com>
@@ -8,3 +14,4 @@ KISSY.add('gallery/temple/1.0/index',function(S,Compiler){
 },{
   requires:["gallery/temple/1.0/compile2js"]
 })
+

@@ -10,9 +10,13 @@
   </head>
   <body>
     <script type="text/javascript">
-     console.log(Temple.to_js('{#if name} {name} {/if}'));
+     //console.log(Temple.to_js('{#if name}{/if}'));
+     //console.log(Temple.to_js('{#if name}{name}{/if}'));
      //console.log(Temple.to_js('{#if name}{name}{#else}noname{/if}'));
-     //console.log(Temple.to_js('{#if name}{name}{#elseif sex}{sex}{#else}noname{/if}'));
+     //console.log(Temple.to_js('{#if parseInt(name)}{name}{#elseif sex}{sex}{#else}noname{/if}'));
+     //console.log(Temple.to_js('{#if Math.round(1.0)}hello{/if}'));
+     console.log(Temple.to_js('{#if Math.round((a+(b+cdef)))}{/if}'));
+     //console.log(Temple.to_js('{#if Math.round(n)} {name} {#elseif sex}{sex}{#else}noname{/if}'));
     </script>
   </body>
 </html>

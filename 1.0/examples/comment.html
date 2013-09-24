@@ -14,11 +14,9 @@
        console.log(Temple.to_js('{#! 可以包含"{"、"#"、"\\}" }')); 
        console.log(Temple.to_js('{#! 中文注释} 中文字符串abc'));
 
-       var template =  '{#each items as item index}'
-	   + '{index} : {item.name}'
-	   + '{/each}';
-       var temple = Temple.to_js(template);
-       console.log(temple);
+       var template =  '{#each items as item index}{index} : {item}{/each}';
+       
+       console.log(Temple.to_js(template));
      })
     </script>
   </body>

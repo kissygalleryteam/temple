@@ -65,14 +65,19 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     if(isstrnum(m)){
       return m;
     }
-
     if(varns.length>1){
-      if(ctx[varn] || this[varn] || isLocalFn(varn)){
+      if(ctx[varn]){
+        return ctx[varn]+'.'+varns.slice(1);
+      }
+      if(this[varn] || isLocalFn(varn)){
         return m;
       }else{
         return ENV+'.'+m;
       }
     }else{
+      if(ctx[varn]){
+        return ctx[varn];
+      }
       if(isLocalFn(varn)){
         return 'Temple.__fns.'+[varn];
       }else if(isGlobalFn(varn)){
@@ -214,6 +219,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         var _index = gensymbol({
           pre:"i_"
         });
+        var _value = gensymbol({
+          pre:"item_"
+        });
         var _len = gensymbol(
           {
             pre:"len_"
@@ -221,6 +229,8 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         var _items = eachDeclare[0];
         if(!ctx[_items]){
           _items = ENV + "." + _items;
+        }else{
+          _items = ctx[_items];
         }
         code = code + indent + "for(var "+_index+" = 0 , "+_len+" = "+ _items + ".length ; "+_index+" < "+ _len +"; "+_index+"++){\n";
         var index_name = eachDeclare[2];
@@ -228,9 +238,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         //从旧的环境上派生
         var newctx = derive(ctx);
 
+        code = code + INDENT + indent + 'var '+_value+' = '+_items + "["+_index+"];\n";
         newctx[index_name] = _index;
-        newctx[value_name] = _items + "["+_index+"]"
-
+        newctx[value_name] = _value;
         for(var i=0,l=eachBody.length;i<l;i++){
           code = code + _compile(eachBody[i],"",indent+INDENT,newctx) + "\n";
         }
@@ -284,10 +294,11 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
       var ns = exps.slice(0,exps.length-1);
       var s = '';
       for(var i=0,l=ns.length;i<l;i++){
-        if(isExpAtom(ns[i])){
-          s+= ns[i];
+        var nsi = ns[i];
+        if(isExpAtom(nsi)){
+          s += nsi;
         }else{
-          s+= nshandle(ns[i],ctx);
+          s += nshandle(nsi,ctx);
         }
       }
       ret = indent + stringname + ' += ' + s;

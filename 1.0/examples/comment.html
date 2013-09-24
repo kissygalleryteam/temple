@@ -7,18 +7,16 @@
   <body>
     <script charset="utf-8" src="http://a.tbcdn.cn/s/kissy/1.3.0/kissy-min.js"></script>
     <!-- <script type="text/javascript" src="../build/index-min.js"></script> -->
-    <script type="text/javascript" src="../build/index.js"></script>
+    <script type="text/javascript" src="../build/index-min.js"></script>
     <script type="text/javascript">
      KISSY.use('gallery/temple/1.0/index', function (S, Temple) {
        console.log(Temple.to_js('{#!this is a line of comment}'));
        console.log(Temple.to_js('{#! 可以包含"{"、"#"、"\\}" }')); 
        console.log(Temple.to_js('{#! 中文注释} 中文字符串abc'));
 
-       var template =  '{#each items as item index}'
-	   + '{index} : {item.name}'
-	   + '{/each}';
-       var temple = Temple.to_js(template);
-       console.log(temple);
+       var template =  '{#each items as item index}{index} : {item}{/each}';
+       
+       console.log(Temple.to_js(template));
      })
     </script>
   </body>

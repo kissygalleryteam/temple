@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8">
     <title>simple template engine test</title>
-    <script type="text/javascript" src="../index.js"></script>
-
-
+    <script charset="utf-8" src="http://a.tbcdn.cn/s/kissy/1.3.0/kissy-min.js"></script>
+    <script type="text/javascript" src="../build/index-min.js"></script>
   </head>
   <body>
     <script type="text/javascript">
+     KISSY.use('gallery/temple/1.0/index', function (S, Temple) {
+     
      Temple.add("base","this is head , my name is {#block name} jerry {/block}!");
      console.log(Temple.to_js('{#extend base} {#block name} john {/block}'));
+     })
     </script>
   </body>
 </html>

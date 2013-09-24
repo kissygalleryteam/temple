@@ -12,8 +12,8 @@
 KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   var INDENT = '  ';
   var ENV = 'env';
-  var Temple = window.Temple = {};
-
+  var Temple
+  window.Temple || (Temple = window.Temple = {});
   var unique = 0;
   var default_var_name_pre = "variable_";
   //生成一个符号
@@ -29,9 +29,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   }
   var stringname = gensymbol({pre:"string_"});
 
-  Object.prototype.derive = function () {
+  var derive = function (o) {
     var F = function () {};
-    F.prototype = this;
+    F.prototype = o;
     return new F();
   };
 
@@ -110,19 +110,19 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     rec(list);
     return ret;
   }
-
+  //var a = [["string","this is head , my name is "],["block",[["string","name"],["string"," jerry "]]],["string","!"]];
   function extendListWithBlocks(list,blocks){
     function rec(list){
       for(var i=0,l=list.length;i<l;i++){
-        var li = list[i]
-        var car = list[0];
-        var cdr = list[1];
-        if(car === 'block' && isarray(car)){
+        var li = list[i];
+        var car = li[0];
+        var cdr = li[1];
+        if(car === 'block' && isarray(li)){
           if(blocks[cdr[0][1]]){
             li[1] = blocks[cdr[0][1]];
           }
         }else{
-          isarray(li) && rec(li);
+          isarray(cdr) && rec(cdr);
         }
       }
     }
@@ -226,7 +226,7 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         var index_name = eachDeclare[2];
         var value_name = eachDeclare[1];
         //从旧的环境上派生
-        var newctx = ctx.derive();
+        var newctx = derive(ctx);
 
         newctx[index_name] = _index;
         newctx[value_name] = _items + "["+_index+"]"
@@ -348,10 +348,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
           + '}\n'
     return ret;
   }
-  return {
-    "to_js":to_js,
-    "compile":compile
-  };
+  Temple.to_js = to_js;
+  Temple.compile = compile;
+  return Temple;
 },{
   requires:["gallery/temple/1.0/toast"]
 })

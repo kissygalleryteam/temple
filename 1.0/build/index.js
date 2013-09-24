@@ -779,7 +779,7 @@ KISSY.add("gallery/temple/1.0/toast",function(S,Parser,Grammar){
  * */
 KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   var INDENT = '  ';
-  var ENV = 'env';
+  var ENV;
   var Temple
   window.Temple || (Temple = window.Temple = {});
   var unique = 0;
@@ -796,7 +796,7 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     return ret;
   }
   var stringname = gensymbol({pre:"string_"});
-
+  ENV = gensymbol({pre:"env_"});
   var derive = function (o) {
     var F = function () {};
     F.prototype = o;
@@ -1109,7 +1109,7 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         }
     ret  =  '{\n'
           + '  render:function('+ENV+'){\n'
-          + '    ' + stringname + ' = "";\n'
+          + '    var ' + stringname + ' = "";\n'
           +      ret
           + '    return ' + stringname + ';\n'
           + '  }\n'

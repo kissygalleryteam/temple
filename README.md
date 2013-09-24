@@ -7,7 +7,7 @@
 - extend 模板继承
 - if 表达式支持嵌套
 - 自定义函数
-- 编译后的代码非常直观,不信你看 
+- 编译后的代码非常直观 [Temple编译后的代码](http://tomycat.github.io/blog/temple/index.html) 
 - 语法类似KISSY 1.2 Template ,不过少了个花括号
 
 ### 用法
@@ -20,36 +20,57 @@ KISSY.use('gallery/temple/1.0/index', function (S, Temple) {
 	 console.log(html);
 })
 ```
+### Method
+
+- `Temple.compile` 将模板编译为可以直接执行的js函数
+- `Temple.to_js` 将模板编译为js代码字符串,用于调试或者预编译
+
 ### 支持语法示例
 
 ```javascript
 //-------------------- if --------------------
 
-  '{#if name}'
-    + '{name}'
-+ '{/if}'
+var template = '{#if name}'
+				 + 'hi {name}'
+			 + '{/if}'
+
+var temple = Temple.compile(template);
+template.render({name:"tom"});
+// -> tom
+
+var template = '{#if name}'
+				 + '{name}'
+			 + '{#else}'
+				 + 'noname'
+			 + '{/if}'
+		 
+var temple = Temple.compile(template);
+template.render({name:"tom"});
 
 
-  '{#if name}'
-    + '{name}'
-+ '{#else}'
-    + 'noname'
-+ '{/if}'
-
-
-
-  '{#if name}'
-    + '{name}'
-+ '{#elseif sex}'
-    + '{sex}'
-+ '{#else}'
-  + 'oops'
-+ '{/if}'
+var template = '{#if name}'
+				 + '{name}'
+			 + '{#elseif sex}'
+				 + '{sex}'
+			 + '{#else}'
+			   + 'oops'
+			 + '{/if}'
+var temple = Temple.compile(template);
+temp.render({name:"tom"});
+// -> tom
 
 //-------------------- each --------------------
-  '{#each items as item index}'
-    + '{index} : {item.name}'
-+ '{/each}';
+
+ var template =  '{#each items as item index}'
+				   + '{index} : {item.name}'
+			   + '{/each}';
+ var temple = Temple.compile(template);
+
+ temple.render([
+ {name:"john"}
+ ]);
+ // -> 0 : john
+
 
 //-------------------- include --------------------
 
@@ -60,7 +81,6 @@ var template = '{#include head}'
              + '<p>身体是你自己的</p>'
              + '{#include foot}';
 var temple = Temple.compile(template);
-
 
 //-------------------- extend --------------------
 

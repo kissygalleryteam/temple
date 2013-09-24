@@ -35,7 +35,7 @@ var template = '{#if name}'
 			 + '{/if}'
 
 var temple = Temple.compile(template);
-template.render({name:"tom"});
+temple.render({name:"tom"});
 // -> tom
 
 var template = '{#if name}'
@@ -64,12 +64,12 @@ temp.render({name:"tom"});
  var template =  '{#each items as item index}'
 				   + '{index} : {item.name}'
 			   + '{/each}';
- var temple = Temple.compile(template);
+ 
+var temple = Temple.compile(template);
 
  temple.render([
  {name:"john"}
  ]);
- // -> 0 : john
 
 
 //-------------------- include --------------------
@@ -103,9 +103,7 @@ var temple = Temple.compile(app);
 Temple.reg("myescape",function(s){
   return escape(s);
 });
-
 var temple  = Temple.compile('{myescape(htmlstr)}');
-
 
 //-------------------- 注释 --------------------
 

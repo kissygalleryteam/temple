@@ -139,5 +139,5 @@ KISSY.add("gallery/temple/1.0/toast",function(S,Parser,Grammar){
   }
   return toAST;
 },{
-  requires:['gallery/temple/1.0/rdparser','gallery/temple/1.0/grammar']
+  requires:['./rdparser','./grammar']
 });

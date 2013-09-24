@@ -27,21 +27,6 @@ module.exports = function(grunt) {
               {
                 src: ["<%= pkg.version %>/index.js"],
                 dest: "<%= pkg.version %>/build/index.js"
-              },
-              {
-                src: ["<%= pkg.version %>/compile2js.js"],
-                dest: "<%= pkg.version %>/build/compile2js.js"
-              },
-              {
-                src: ["<%= pkg.version %>/grammar.js"],
-                dest: "<%= pkg.version %>/build/grammar.js"
-              },{
-                src: ["<%= pkg.version %>/toast.js"],
-                dest: "<%= pkg.version %>/build/toast.js"
-              },
-              {
-                src: ["<%= pkg.version %>/rdparser.js"],
-                dest: "<%= pkg.version %>/build/rdparser.js"
               }
             ]
           }
@@ -57,7 +42,7 @@ module.exports = function(grunt) {
             },
             base: {
                 files: {
-                    '<%= pkg.version %>/build/index-min.js': ['<%= pkg.version %>/build/rdparser.js','<%= pkg.version %>/build/toast.js','<%= pkg.version %>/build/compile2js.js','<%= pkg.version %>/build/grammar.js','<%= pkg.version %>/build/index.js']
+                    '<%= pkg.version %>/build/index-min.js': ['<%= pkg.version %>/build/index.js']
                 }
             }
         }

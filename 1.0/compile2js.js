@@ -352,5 +352,5 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   Temple.compile = compile;
   return Temple;
 },{
-  requires:["gallery/temple/1.0/toast"]
+  requires:["./toast"]
 })

@@ -6,5 +6,5 @@
 KISSY.add('gallery/temple/1.0/index',function(S,Compiler){
   return Compiler;
 },{
-  requires:["gallery/temple/1.0/compile2js"]
+  requires:["./compile2js"]
 })

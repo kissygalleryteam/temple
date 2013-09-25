@@ -67,9 +67,7 @@ temp.render({name:"tom"});
  
 var temple = Temple.compile(template);
 
- temple.render([
- {name:"john"}
- ]);
+ temple.render({items:[{name:"john"}]});
 
 
 //-------------------- include --------------------

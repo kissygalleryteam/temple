@@ -51,10 +51,11 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   var isstr = function(s){return s[0] == '"' || s[0] == "'"};
 
   var isnum = function(n){
-    return /\d/.test(n);
+    return /\d/.test(n[0]);
   }
   var isstrnum = function(a){
-    return isnum(a) || isstr(a);
+    var b1 = isnum(a),b2=isstr(a);
+    return b1 || b2;
   }
   var nshandle = function(m,ctx){
     var varns = m.split('.');

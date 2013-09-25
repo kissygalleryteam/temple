@@ -278,7 +278,8 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     }else if(list[0] === "block"){
       var rest = list[1].slice(1);
       for(var i=0,l=rest.length;i<l;i++){
-        ret = code + indent + _compile(rest[i],'','',{});
+        var tmp = _compile(rest[i],'','',{})+'\n';
+        ret += code + indent + tmp;
       }
     }else if(list[0] === "include"){
       var sub = list[1][1];

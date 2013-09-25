@@ -1,14 +1,13 @@
 ## Temple 模板引擎 (线上环境慎用)
 
 ### Features
-- if/elseif/else
-- each
+- 语法继承自KISSY 1.2 Template ,不过少了个花括号
+- 编译后的代码非常直观 [Temple编译后的代码](http://tomycat.github.io/blog/temple/index.html) 
+- 基本的 if/elseif/else each
 - include 子模板
 - extend 模板继承
-- if 表达式支持嵌套
-- 自定义函数
-- 编译后的代码非常直观 [Temple编译后的代码](http://tomycat.github.io/blog/temple/index.html) 
-- 语法类似KISSY 1.2 Template ,不过少了个花括号
+- if(exp) exp可以为复杂表达式
+- 模板允许使用自定义函数
 
 ### 用法
 

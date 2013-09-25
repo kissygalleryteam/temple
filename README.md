@@ -82,7 +82,7 @@ var temple = Temple.compile(template);
 
 //-------------------- extend --------------------
 
-Temple.add("base","<h1>共用头</h1"
+Temple.add("base","<h1>共用头</h1>"
                   + "{#block body}"
                     + "<p>大家都公用的身体</p>"
                   + "{/block}"

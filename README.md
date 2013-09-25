@@ -1,22 +1,21 @@
 ## Temple 模板引擎 (线上环境慎用)
 
 ### Features
-- if/elseif/else
-- each
+- 语法继承自KISSY 1.2 Template ,不过少了个花括号
+- 编译后的代码非常直观 [Temple编译后的代码](http://tomycat.github.io/blog/temple/index.html) 
+- 基本的 if/elseif/else each
 - include 子模板
 - extend 模板继承
-- if 表达式支持嵌套
-- 自定义函数
-- 编译后的代码非常直观 [Temple编译后的代码](http://tomycat.github.io/blog/temple/index.html) 
-- 语法类似KISSY 1.2 Template ,不过少了个花括号
+- if(exp) exp可以为复杂表达式
+- 模板允许使用自定义函数
 
 ### 用法
 
 ```javascript
 KISSY.use('gallery/temple/1.0/index', function (S, Temple) {
-     Temple.add("base","this is head , my name is {#block name} jerry {/block}!");
-     var temple = Temple.compile('{#extend base} {#block name} john {/block}');
-	 var html = temple.render({name:"Tom"});
+     Temple.add("base","this is head , my sex is {#block name} female {/block}!");
+     var temple = Temple.compile('{#extend base} {#block name} {sex} {/block}');
+	 var html = temple.render({"sex":"male"});
 	 console.log(html);
 })
 ```

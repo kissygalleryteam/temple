@@ -16,6 +16,7 @@
        console.log(Temple.to_js('{#! 中文注释} 中文字符串abc'));
        */
 
+       /*
        Temple.add("head","<h1>共用头</h1");
        Temple.add("foot","<h1>共用脚</h1");
        
@@ -25,6 +26,12 @@
        var temple = Temple.to_js(template);
 
        console.log(temple);
+       */
+       Temple.add("base","this is head , my sex is {#block name} female {/block}!");
+       var temple = Temple.compile('{#extend base} {#block name} {sex} {/block}');
+       //console.log(Temple.to_js('{#extend base} {#block name} {sex} {/block}'))
+       var html = temple.render({"sex":"male"});
+       console.log(html);
 
        /*
        var template =  '{#each items as item index}{index} : {item}{/each}';

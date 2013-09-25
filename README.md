@@ -13,9 +13,9 @@
 
 ```javascript
 KISSY.use('gallery/temple/1.0/index', function (S, Temple) {
-     Temple.add("base","this is head , my name is {#block name} jerry {/block}!");
-     var temple = Temple.compile('{#extend base} {#block name} john {/block}');
-	 var html = temple.render();
+     Temple.add("base","this is head , my sex is {#block name} female {/block}!");
+     var temple = Temple.compile('{#extend base} {#block name} {sex} {/block}');
+	 var html = temple.render({"sex":"male"});
 	 console.log(html);
 })
 ```

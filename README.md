@@ -15,7 +15,7 @@
 ```javascript
 KISSY.use('gallery/temple/1.0/index', function (S, Temple) {
      Temple.add("base","this is head , my name is {#block name} jerry {/block}!");
-     var temple = Temple.compile('{#extend base} {#block name} john {/block}'));
+     var temple = Temple.compile('{#extend base} {#block name} john {/block}');
 	 var html = temple.render({name:"Tom"});
 	 console.log(html);
 })

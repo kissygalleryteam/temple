@@ -1,13 +1,13 @@
 {
     "name": "temple",
     "version": "1.0",
-    "desc": "Temple 模板引擎",
+    "desc": "(线上慎用)Temple 模板引擎",
     "cover": "",
     "tag":"",
     "author": {
         "name": "tom",
         "email": "cookieu@gmail.com",
-        "page": ""
+        "page": "请修改作者个人首页"
     },
     "type": "kissy-gallery",
     "type-url": "http://gallery.kissyui.com/guide"

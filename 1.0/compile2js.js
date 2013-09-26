@@ -34,7 +34,6 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     F.prototype = o;
     return new F();
   };
-
   var indexOf = Array.indexOf ? Array.indexOf :
     function(arr,i){
       for(var j=0,l=arr.length;j<l;j++){
@@ -49,7 +48,6 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
                                                 return toString.call(s) === "[object Array]";
                                               }
   var isstr = function(s){return s[0] == '"' || s[0] == "'"};
-
   var isnum = function(n){
     return /\d/.test(n[0]);
   }
@@ -116,7 +114,6 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     rec(list);
     return ret;
   }
-  //var a = [["string","this is head , my name is "],["block",[["string","name"],["string"," jerry "]]],["string","!"]];
   function extendListWithBlocks(list,blocks){
     function rec(list){
       for(var i=0,l=list.length;i<l;i++){
@@ -138,10 +135,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   // see http://stackoverflow.com/questions/1661197/valid-characters-for-javascript-variable-names
   var regvar = /[a-zA-Z_$][a-zA-Z_$0-9]*/g;
   //Global Properties
-  var globalfns = ["Infinity","NaN","undefined"];
+  // var globalfns = ["Infinity","NaN","undefined"];
   //Global Method
-  globalfns = globalfns.concat(["decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "Number", "parseFloat", "parseInt", "String", "unescape"]);
-
+  // globalfns = globalfns.concat(["decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "Number", "parseFloat", "parseInt", "String", "unescape"]);
   var localfns = Temple.__fns = {};
   Temple.reg = function(fname,fbody){
     localfns[fname] = fbody;
@@ -155,18 +151,15 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     //return indexOf(globalfns,fn) > -1;
     return !!this[fn];
   }
-
   var expatom = ["=","==","===",">=","<=","+=","-=","&&","||","+","-","*","/","%","|",">","<","^",
                 ",",
                 ".",
                 "(",
                 ")"];
-
   function isExpAtom(s){
     return indexOf(expatom,s) > -1;
   }
-
-  function _compile(list,code,indent,ctx){
+  function _compile(list,indent,ctx){
     var ret = '';
     if(list[0] === "if"){
       var ifexps = list[1];
@@ -174,9 +167,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
       for(var i1=0,l1=ifexps.length;i1<l1;i1++){
         ifexp = ifexps[i1];
         if(i1){
-          code = code + "else if(";
+          ret = ret + "else if(";
         }else{
-          code = code + indent + "if(";
+          ret = ret + indent + "if(";
         }
         var predict = ifexp[0];
         var predict_len = predict.length;
@@ -190,29 +183,29 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
             s+= nshandle(predict_head[pi],ctx);
           }
         }
-        code = code + s;
-        code = code + ")";
-        code = code + "{\n";
+        ret = ret + s;
+        ret = ret + ")";
+        ret = ret + "{\n";
         var ifbody = ifexp[1];
         if(ifbody){
           for(var i2=0,l2=ifbody.length;i2<l2;i2++){
-            code = code + _compile(ifbody[i2],"",indent+INDENT,ctx) + "\n";
+            ret = ret + _compile(ifbody[i2],indent+INDENT,ctx) + "\n";
           }
         }
-        code = code+indent+"}";
+        ret = ret+indent+"}";
       }
       //else clause
       if(list[2] && list[2].length){
-        code = code +  "else"
-        code = code + "{\n";
+        ret = ret +  "else"
+        ret = ret + "{\n";
         var elseexps = list[2];
         for(var i3=0;i3<elseexps.length;i3++){
-          code = code + _compile(elseexps[i3],"",indent+INDENT,ctx) + "\n";
+          ret = ret + _compile(elseexps[i3],indent+INDENT,ctx) + "\n";
         }
-        code = code+indent+"}";
-        ret = code;
+        ret = ret+indent+"}";
+        ret = ret;
       }
-      ret = code;
+      ret = ret;
     }else if(list[0] === "each"){
       var eachDeclare = list[1];
       var eachBody = list[2];
@@ -233,21 +226,21 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         }else{
           _items = ctx[_items];
         }
-        code = code + indent + "for(var "+_index+" = 0 , "+_len+" = "+ _items + ".length ; "+_index+" < "+ _len +"; "+_index+"++){\n";
+        ret = ret + indent + "for(var "+_index+" = 0 , "+_len+" = "+ _items + ".length ; "+_index+" < "+ _len +"; "+_index+"++){\n";
         var index_name = eachDeclare[2];
         var value_name = eachDeclare[1];
         //从旧的环境上派生
         var newctx = derive(ctx);
 
-        code = code + INDENT + indent + 'var '+_value+' = '+_items + "["+_index+"];\n";
+        ret = ret + INDENT + indent + 'var '+_value+' = '+_items + "["+_index+"];\n";
         newctx[index_name] = _index;
         newctx[value_name] = _value;
         for(var i=0,l=eachBody.length;i<l;i++){
-          code = code + _compile(eachBody[i],"",indent+INDENT,newctx) + "\n";
+          ret = ret + _compile(eachBody[i],indent+INDENT,newctx) + "\n";
         }
-        code = code + indent + "}";
+        ret = ret + indent + "}";
       }
-      ret = code;
+      ret = ret;
     }else if(list[0] === "set"){
       var allset = list[1];
       var setname = allset[0];
@@ -261,25 +254,17 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
           s+= nshandle(ns[i],ctx);
         }
       }
-
-      //var exp = allset[allset.length-1];
-      // for(var i=0,l=ns.length;i<l;i++){
-      //   exp = exp.replace(ns[i],function(m){
-      //           return nshandle(m,ctx);
-      //         });
-      // }
-
       //非纯变量
       if(setname.indexOf(".") > -1){
-        ret = code + indent + setname + ' = ' + s + ";";
+        ret = ret + indent + setname + ' = ' + s + ";";
       }else{
-        ret = code + indent + 'var ' + setname + ' = ' + s + ";";
+        ret = ret + indent + 'var ' + setname + ' = ' + s + ";";
       }
     }else if(list[0] === "block"){
       var rest = list[1].slice(1);
       for(var i=0,l=rest.length;i<l;i++){
-        var tmp = _compile(rest[i],'','',{})+'\n';
-        ret += code + indent + tmp;
+        var tmp = _compile(rest[i],indent,{})+'\n';
+        ret += ret + tmp;
       }
     }else if(list[0] === "include"){
       var sub = list[1][1];
@@ -287,10 +272,10 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
       if(subs[sub]){
         var ast = toAST(subs[sub]);
         for(var i=0,l=ast.length;i<l;i++){
-          sub_code += _compile(ast[i],'',indent,{})+'\n';
+          sub_code += _compile(ast[i],indent,{})+'\n';
         }
       }
-      ret += code + sub_code;
+      ret += ret + sub_code;
     }else if(list[0] === "expression"){
       var exps = list[1]
       var ns = exps.slice(0,exps.length-1);
@@ -350,7 +335,7 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     var indent = INDENT+INDENT;
     var ret = '';
         for(var i=0,l=lists.length;i<l;i++){
-          ret = ret + _compile(lists[i],'',indent,{})+"\n";
+          ret = ret + _compile(lists[i],indent,{})+"\n";
         }
     ret  =  '{\n'
           + '  render:function('+ENV+'){\n'

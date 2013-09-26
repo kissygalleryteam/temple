@@ -62,51 +62,50 @@ KISSY.add("gallery/temple/1.0/toast",function(S,Parser,Grammar){
       ctxq.push(currentContext);
       ctxq.push(ifclause);
       currentContext = ifexpressions;
+    }else if(next.name == "@ifbodystart"){
+      var yesexp = [];
+      currentContext.push(yesexp);
+      ctxq.push(currentContext);
+      currentContext = yesexp;
     }else if(next.name == "@elseifstart"){
       var ifexpression = [];
       currentContext.push(ifexpression);
       ctxq.push(currentContext);
       currentContext = ifexpression;
-    }else if(next.name == "@ifexpstart"){
-      var predict = [];
-      currentContext.push(predict);
-      ctxq.push(currentContext);
-      currentContext = predict;
     }else if(name == "@elsestart"){
       currentContext = ctxq.pop();
       var elseexp = [];
       currentContext.push(elseexp);
       ctxq.push(currentContext);
       currentContext = elseexp;
+    }else if(next.name == "@ifexpstart"){
+      var predict = [];
+      currentContext.push(predict);
+      ctxq.push(currentContext);
+      currentContext = predict;
     }else if(name == "@ifexpend"){
       if(ctxq.length){
         currentContext = ctxq.pop();
       }
-    }else if(next.name == "@ifbodystart"){
-      var yesexp = [];
-      currentContext.push(yesexp);
-      ctxq.push(currentContext);
-      currentContext = yesexp;
     }else if(next.name == "expatom"){
-      currentContext.push(next.value);
-    }else if(next.name == "namespace"){
       currentContext.push(next.value);
     }else if(next.name == "expressionbody"){
       currentContext.push(next.value);
-    }else if(next.name == "@expressionend"){
-      currentContext = ctxq.pop();
     }else if(next.name == "@expressionstart"){
       var exp = [];
       var exps = ["expression",exp];
       ctxq.push(currentContext);
       currentContext.push(exps);
       currentContext = exp;
+    }else if(next.name == "@expressionend"){
+      currentContext = ctxq.pop();
+    }else if(next.name == "namespace"){
+      currentContext.push(next.value);
     }else if(next.name == "expression"){
       currentContext.push(next.value);
     }else if(next.name == "@includestart"){
       var includeexp = ["include"];
       currentContext.push(includeexp);
-
       ctxq.push(currentContext);
       currentContext = includeexp;
     }else if(next.name == "@extendstart"){

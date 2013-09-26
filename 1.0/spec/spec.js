@@ -10,7 +10,7 @@ describe('if/elseif/else', function () {
     expect(html).to.be("tom");
   });
   it('#if/elseif/else', function () {
-    var temple = Temple.compile('{#if name}{name}{#elseif b}b{#else}c{/if}');
+    var temple = Temple.compile('{#if name}{name}{#elseif "b"}b{#else}c{/if}');
     var html = temple.render({name:"tom"});
     expect(html).to.be("tom");
   });

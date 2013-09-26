@@ -101,6 +101,7 @@ Temple.reg("myescape",function(s){
   return escape(s);
 });
 var temple  = Temple.compile('{myescape(htmlstr)}');
+temple.render({htmlstr:"<p>foo</p>"});
 
 //-------------------- 注释 --------------------
 

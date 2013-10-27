@@ -13,11 +13,15 @@
     <script type="text/javascript" src="../compile2js.js"></script>
     <script type="text/javascript" src="../index.js"></script>
     <script type="text/javascript">
-     KISSY.use('gallery/temple/1.0/toast', function (S, toAST) {
+     KISSY.use('gallery/temple/1.0/index,gallery/temple/1.0/toast', function (S,Temple,toAST) {
        var ast = toAST('{#if a}abc{#else}cde{/if}');
+       /*
        console.log(
          JSON.stringify(ast)
-       );
+       );*/
+       var temple;
+       temple = Temple.compile('{#if Math.round(1+2) } hello {/if}');
+       console.log(temple.render());
      });    
     </script>
   </body>

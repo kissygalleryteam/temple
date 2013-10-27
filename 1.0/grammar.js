@@ -433,6 +433,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
           _ifStart,
           optblanks,
           _ifExp,
+          optblanks,
           _delimeter_end,
           Optional(Capture(Rule,"@ifbodyend","@ifbodystart"))
         );

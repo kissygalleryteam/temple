@@ -175,7 +175,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     // 'bla bla'
     // "foo bar"
     var _SingleAtom = Any(
-      Str(["\\\\","'"]),
+      All(Char(/\\\\/),Char(/'/)),//Str(["\\\\","'"]),
       Char(/[^']/)
     );
     var _SingleStringContent = Plus(_SingleAtom);
@@ -189,7 +189,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
 
     var _DoubleAtom = Any(
-      Str(['\\\\','"']),
+      All(Char(/\\\\/),Char(/'/)),//Str(['\\\\','"']),
       Char(/[^"]/)
     );
     var _DoubleStringContent = Plus(_DoubleAtom);
@@ -257,6 +257,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     _items = Capture(_items,"each-items");
     _index = Capture(_index,"each-index");
 
+    // {#each items as item index}
     var _eachStart = All(
       _delimeter_start,
       _each,
@@ -272,6 +273,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
     _eachStart = Capture(_eachStart,"@each-head-end","@each-head-start");
 
+    // {/each}
     var _eachEnd = All(
       _delimeter_start,
       optblanks,
@@ -353,55 +355,61 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         All(Char(/&/),Char(/&/)),
         Char(/[\+\-\*\/%><\|\^]/)
       );
-    op = Capture(op,"expatom");
     var unary = Char(/[\+\-!]/);
-    unary = Capture(unary,"expatom");
 
-    proton = Capture(proton,"expatom");
+    var _op = Capture(op,"expatom");
+    var _unary = Capture(unary,"expatom");
+    var _proton = Capture(proton,"expatom");
 
-    var commar = Capture(Char(/,/),"expatom");
-    var preBrack = Capture(Char(/\(/),"expatom");
-    var exBrack = Capture(Char(/\)/),"expatom");
-    var _Dot = Capture(Char(/\./),"expatom");
+    var commar = Char(/,/);
+    var _commar = Capture(commar,"expatom");
+
+    var preBrack = Char(/\(/);
+    var _preBrack = Capture(preBrack,"expatom");
+
+    var exBrack = Char(/\)/);
+    var _exBrack = Capture(exBrack,"expatom");
+    var dot = Char(/\./);
+    var _dot = Capture(dot,"expatom");
 
     var atom = Any(
-      All(unary,optblanks,proton),
-      All(unary,optblanks,preBrack,optblanks,proton,optblanks,exBrack),
+      All(_unary,optblanks,_proton),
+      All(_unary,optblanks,_preBrack,optblanks,_proton,optblanks,_exBrack),
       _Bool,
-      proton
+      _proton
     );
     var _ComplexExp = Y(function(exp){
                         var arg = Y(function(rule){
                                     return Any(
-                                      All(exp,optblanks,commar,optblanks,rule),
+                                      All(exp,optblanks,_commar,optblanks,rule),
                                       exp
                                     );
                                   });
                         var fn = All(
-                          Optional(unary),
+                          Optional(_unary),
                           optblanks,
                           Capture(_NameSpace,"expatom"),
                           optblanks,
-                          preBrack,
+                          _preBrack,
                           optblanks,
                           Optional(arg),
                           optblanks,
-                          exBrack);
+                          _exBrack);
                         var a = Any(fn,atom);
 
                         // foo op bar ...
                         var b = Any(
-                          All(a,optblanks,op,optblanks,exp),
+                          All(a,optblanks,_op,optblanks,exp),
                           a
                         );
                         // (foo op bar)
                         var c = Any(
-                          All(preBrack,optblanks,b,optblanks,exBrack),
+                          All(_preBrack,optblanks,b,optblanks,_exBrack),
                           b
                         );
 
                         // !(foo op bar)
-                        var d = All(Optional(unary),optblanks,c);
+                        var d = All(Optional(_unary),optblanks,c);
 
                         // exp.toString()
                         // var e = Any(
@@ -411,15 +419,15 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
                         // 优化后的e，效果十分明显!!!
                         var e = All(d,
                                     Optional(
-                                      All(optblanks,_Dot,optblanks,_NameSpace,
+                                      All(optblanks,_dot,optblanks,_NameSpace,
                                           Optional(
-                                            All(preBrack,Optional(arg),exBrack)))
+                                            All(_preBrack,Optional(arg),_exBrack)))
                                     ));
 
                         // d的循环
                         var f = Y(function(rule){
                                   return Any(
-                                    All(e,optblanks,op,rule),
+                                    All(e,optblanks,_op,rule),
                                     e
                                   )
                                 });
@@ -430,15 +438,17 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     var _ifExp = Capture(_ComplexExp,"expression");
     _ifExp = Capture(_ifExp,"@ifexpend","@ifexpstart");
 
+    // {#elseif exp}
     var _ElseExpression = All(
       _delimeter_start,
       optblanks,
       _elseif,
-      blanks,
+      optblanks,
       _ifExp,
       _delimeter_end
     );
 
+    // {#else}
     var _ElseStatement = All(
       _delimeter_start,
       optblanks,
@@ -447,6 +457,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
       _delimeter_end
     );
 
+    // {/if}
     var _ElseEnd = All(
       _delimeter_start,
       optblanks,
@@ -464,6 +475,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
     _Expression = Capture(_Expression,"@expressionend","@expressionstart");
 
+    // {#set name = value_exp}
     var _Set = All(
       _delimeter_start,
       Char(/#/),
@@ -479,6 +491,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
     _Set = Capture(_Set,"@setend","@setstart");
 
+    // {#include sub_name}
     var _Include = All(
       Str("{#include"),
       optblanks,
@@ -491,6 +504,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     var _BlockStart = Str("{#block");
     var _BlockEnd = Str("{/block}");
 
+    // {#extend base_name}
     var _Extend = All(
       Str("{#extend"),
       optblanks,
@@ -533,6 +547,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         //------------------------------ each ------------------------------
 
         //------------------------------  if  ------------------------------
+        // {#elseif exp} + Rule
         var _ElseIfOne = All(
           _ElseExpression,
           Optional(Capture(Rule,"@ifbodyend","@ifbodystart"))
@@ -541,18 +556,21 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         var _ElseIf = Optional(
           Plus(_ElseIfOne)
         );
+        // {#else} + Rule
         var _Else = Optional(
           All(
             _ElseStatement,
+            optblanks,
             Optional(Rule)
           ));
         _Else = Capture(_Else,"@elseend","@elsestart");
-
+        // {#if exp} + Rule
         var _firstIf = All(
           _delimeter_start,
           _ifStart,
           optblanks,
           _ifExp,
+          optblanks,
           _delimeter_end,
           Optional(Capture(Rule,"@ifbodyend","@ifbodystart"))
         );
@@ -566,9 +584,9 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         If = Capture(If,"@ifend","@ifstart");
         //------------------------------  if  ------------------------------
 
-        //------------------------------  var ------------------------------
+        //------------------------------  exp ------------------------------
         var Expression = _Expression;
-        //------------------------------  var ------------------------------
+        //------------------------------  exp ------------------------------
 
         //------------------------------  set ------------------------------
         var Set = _Set;
@@ -604,7 +622,6 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         //------------------------------anything------------------------------
         var AnyThingElse = _AnyThing;
         //------------------------------anything------------------------------
-
         return Any(
           Each,
           If,
@@ -687,51 +704,50 @@ KISSY.add("gallery/temple/1.0/toast",function(S,Parser,Grammar){
       ctxq.push(currentContext);
       ctxq.push(ifclause);
       currentContext = ifexpressions;
+    }else if(next.name == "@ifbodystart"){
+      var yesexp = [];
+      currentContext.push(yesexp);
+      ctxq.push(currentContext);
+      currentContext = yesexp;
     }else if(next.name == "@elseifstart"){
       var ifexpression = [];
       currentContext.push(ifexpression);
       ctxq.push(currentContext);
       currentContext = ifexpression;
-    }else if(next.name == "@ifexpstart"){
-      var predict = [];
-      currentContext.push(predict);
-      ctxq.push(currentContext);
-      currentContext = predict;
     }else if(name == "@elsestart"){
       currentContext = ctxq.pop();
       var elseexp = [];
       currentContext.push(elseexp);
       ctxq.push(currentContext);
       currentContext = elseexp;
+    }else if(next.name == "@ifexpstart"){
+      var predict = [];
+      currentContext.push(predict);
+      ctxq.push(currentContext);
+      currentContext = predict;
     }else if(name == "@ifexpend"){
       if(ctxq.length){
         currentContext = ctxq.pop();
       }
-    }else if(next.name == "@ifbodystart"){
-      var yesexp = [];
-      currentContext.push(yesexp);
-      ctxq.push(currentContext);
-      currentContext = yesexp;
     }else if(next.name == "expatom"){
-      currentContext.push(next.value);
-    }else if(next.name == "namespace"){
       currentContext.push(next.value);
     }else if(next.name == "expressionbody"){
       currentContext.push(next.value);
-    }else if(next.name == "@expressionend"){
-      currentContext = ctxq.pop();
     }else if(next.name == "@expressionstart"){
       var exp = [];
       var exps = ["expression",exp];
       ctxq.push(currentContext);
       currentContext.push(exps);
       currentContext = exp;
+    }else if(next.name == "@expressionend"){
+      currentContext = ctxq.pop();
+    }else if(next.name == "namespace"){
+      currentContext.push(next.value);
     }else if(next.name == "expression"){
       currentContext.push(next.value);
     }else if(next.name == "@includestart"){
       var includeexp = ["include"];
       currentContext.push(includeexp);
-
       ctxq.push(currentContext);
       currentContext = includeexp;
     }else if(next.name == "@extendstart"){
@@ -802,7 +818,6 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     F.prototype = o;
     return new F();
   };
-
   var indexOf = Array.indexOf ? Array.indexOf :
     function(arr,i){
       for(var j=0,l=arr.length;j<l;j++){
@@ -817,7 +832,6 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
                                                 return toString.call(s) === "[object Array]";
                                               }
   var isstr = function(s){return s[0] == '"' || s[0] == "'"};
-
   var isnum = function(n){
     return /\d/.test(n[0]);
   }
@@ -884,7 +898,6 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     rec(list);
     return ret;
   }
-  //var a = [["string","this is head , my name is "],["block",[["string","name"],["string"," jerry "]]],["string","!"]];
   function extendListWithBlocks(list,blocks){
     function rec(list){
       for(var i=0,l=list.length;i<l;i++){
@@ -906,10 +919,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
   // see http://stackoverflow.com/questions/1661197/valid-characters-for-javascript-variable-names
   var regvar = /[a-zA-Z_$][a-zA-Z_$0-9]*/g;
   //Global Properties
-  var globalfns = ["Infinity","NaN","undefined"];
+  // var globalfns = ["Infinity","NaN","undefined"];
   //Global Method
-  globalfns = globalfns.concat(["decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "Number", "parseFloat", "parseInt", "String", "unescape"]);
-
+  // globalfns = globalfns.concat(["decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isFinite", "isNaN", "Number", "parseFloat", "parseInt", "String", "unescape"]);
   var localfns = Temple.__fns = {};
   Temple.reg = function(fname,fbody){
     localfns[fname] = fbody;
@@ -923,18 +935,15 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     //return indexOf(globalfns,fn) > -1;
     return !!this[fn];
   }
-
   var expatom = ["=","==","===",">=","<=","+=","-=","&&","||","+","-","*","/","%","|",">","<","^",
                 ",",
                 ".",
                 "(",
                 ")"];
-
   function isExpAtom(s){
     return indexOf(expatom,s) > -1;
   }
-
-  function _compile(list,code,indent,ctx){
+  function _compile(list,indent,ctx){
     var ret = '';
     if(list[0] === "if"){
       var ifexps = list[1];
@@ -942,9 +951,9 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
       for(var i1=0,l1=ifexps.length;i1<l1;i1++){
         ifexp = ifexps[i1];
         if(i1){
-          code = code + "else if(";
+          ret = ret + "else if(";
         }else{
-          code = code + indent + "if(";
+          ret = ret + indent + "if(";
         }
         var predict = ifexp[0];
         var predict_len = predict.length;
@@ -958,29 +967,29 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
             s+= nshandle(predict_head[pi],ctx);
           }
         }
-        code = code + s;
-        code = code + ")";
-        code = code + "{\n";
+        ret = ret + s;
+        ret = ret + ")";
+        ret = ret + "{\n";
         var ifbody = ifexp[1];
         if(ifbody){
           for(var i2=0,l2=ifbody.length;i2<l2;i2++){
-            code = code + _compile(ifbody[i2],"",indent+INDENT,ctx) + "\n";
+            ret = ret + _compile(ifbody[i2],indent+INDENT,ctx) + "\n";
           }
         }
-        code = code+indent+"}";
+        ret = ret+indent+"}";
       }
       //else clause
       if(list[2] && list[2].length){
-        code = code +  "else"
-        code = code + "{\n";
+        ret = ret +  "else"
+        ret = ret + "{\n";
         var elseexps = list[2];
         for(var i3=0;i3<elseexps.length;i3++){
-          code = code + _compile(elseexps[i3],"",indent+INDENT,ctx) + "\n";
+          ret = ret + _compile(elseexps[i3],indent+INDENT,ctx) + "\n";
         }
-        code = code+indent+"}";
-        ret = code;
+        ret = ret+indent+"}";
+        ret = ret;
       }
-      ret = code;
+      ret = ret;
     }else if(list[0] === "each"){
       var eachDeclare = list[1];
       var eachBody = list[2];
@@ -1001,21 +1010,21 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
         }else{
           _items = ctx[_items];
         }
-        code = code + indent + "for(var "+_index+" = 0 , "+_len+" = "+ _items + ".length ; "+_index+" < "+ _len +"; "+_index+"++){\n";
+        ret = ret + indent + "for(var "+_index+" = 0 , "+_len+" = "+ _items + ".length ; "+_index+" < "+ _len +"; "+_index+"++){\n";
         var index_name = eachDeclare[2];
         var value_name = eachDeclare[1];
         //从旧的环境上派生
         var newctx = derive(ctx);
 
-        code = code + INDENT + indent + 'var '+_value+' = '+_items + "["+_index+"];\n";
+        ret = ret + INDENT + indent + 'var '+_value+' = '+_items + "["+_index+"];\n";
         newctx[index_name] = _index;
         newctx[value_name] = _value;
         for(var i=0,l=eachBody.length;i<l;i++){
-          code = code + _compile(eachBody[i],"",indent+INDENT,newctx) + "\n";
+          ret = ret + _compile(eachBody[i],indent+INDENT,newctx) + "\n";
         }
-        code = code + indent + "}";
+        ret = ret + indent + "}";
       }
-      ret = code;
+      ret = ret;
     }else if(list[0] === "set"){
       var allset = list[1];
       var setname = allset[0];
@@ -1029,25 +1038,17 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
           s+= nshandle(ns[i],ctx);
         }
       }
-
-      //var exp = allset[allset.length-1];
-      // for(var i=0,l=ns.length;i<l;i++){
-      //   exp = exp.replace(ns[i],function(m){
-      //           return nshandle(m,ctx);
-      //         });
-      // }
-
       //非纯变量
       if(setname.indexOf(".") > -1){
-        ret = code + indent + setname + ' = ' + s + ";";
+        ret = ret + indent + setname + ' = ' + s + ";";
       }else{
-        ret = code + indent + 'var ' + setname + ' = ' + s + ";";
+        ret = ret + indent + 'var ' + setname + ' = ' + s + ";";
       }
     }else if(list[0] === "block"){
       var rest = list[1].slice(1);
       for(var i=0,l=rest.length;i<l;i++){
-        var tmp = _compile(rest[i],'','',{})+'\n';
-        ret += code + indent + tmp;
+        var tmp = _compile(rest[i],indent,{})+'\n';
+        ret += ret + tmp;
       }
     }else if(list[0] === "include"){
       var sub = list[1][1];
@@ -1055,10 +1056,10 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
       if(subs[sub]){
         var ast = toAST(subs[sub]);
         for(var i=0,l=ast.length;i<l;i++){
-          sub_code += _compile(ast[i],'',indent,{})+'\n';
+          sub_code += _compile(ast[i],indent,{})+'\n';
         }
       }
-      ret += code + sub_code;
+      ret += ret + sub_code;
     }else if(list[0] === "expression"){
       var exps = list[1]
       var ns = exps.slice(0,exps.length-1);
@@ -1118,7 +1119,7 @@ KISSY.add("gallery/temple/1.0/compile2js",function(S,toAST){
     var indent = INDENT+INDENT;
     var ret = '';
         for(var i=0,l=lists.length;i<l;i++){
-          ret = ret + _compile(lists[i],'',indent,{})+"\n";
+          ret = ret + _compile(lists[i],indent,{})+"\n";
         }
     ret  =  '{\n'
           + '  render:function('+ENV+'){\n'

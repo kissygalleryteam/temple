@@ -38,7 +38,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     // 'bla bla'
     // "foo bar"
     var _SingleAtom = Any(
-      Str(["\\\\","'"]),
+      All(Char(/\\\\/),Char(/'/)),//Str(["\\\\","'"]),
       Char(/[^']/)
     );
     var _SingleStringContent = Plus(_SingleAtom);
@@ -52,7 +52,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
 
     var _DoubleAtom = Any(
-      Str(['\\\\','"']),
+      All(Char(/\\\\/),Char(/'/)),//Str(['\\\\','"']),
       Char(/[^"]/)
     );
     var _DoubleStringContent = Plus(_DoubleAtom);
@@ -120,6 +120,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     _items = Capture(_items,"each-items");
     _index = Capture(_index,"each-index");
 
+    // {#each items as item index}
     var _eachStart = All(
       _delimeter_start,
       _each,
@@ -135,6 +136,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
     _eachStart = Capture(_eachStart,"@each-head-end","@each-head-start");
 
+    // {/each}
     var _eachEnd = All(
       _delimeter_start,
       optblanks,
@@ -216,55 +218,61 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         All(Char(/&/),Char(/&/)),
         Char(/[\+\-\*\/%><\|\^]/)
       );
-    op = Capture(op,"expatom");
     var unary = Char(/[\+\-!]/);
-    unary = Capture(unary,"expatom");
 
-    proton = Capture(proton,"expatom");
+    var _op = Capture(op,"expatom");
+    var _unary = Capture(unary,"expatom");
+    var _proton = Capture(proton,"expatom");
 
-    var commar = Capture(Char(/,/),"expatom");
-    var preBrack = Capture(Char(/\(/),"expatom");
-    var exBrack = Capture(Char(/\)/),"expatom");
-    var _Dot = Capture(Char(/\./),"expatom");
+    var commar = Char(/,/);
+    var _commar = Capture(commar,"expatom");
+
+    var preBrack = Char(/\(/);
+    var _preBrack = Capture(preBrack,"expatom");
+
+    var exBrack = Char(/\)/);
+    var _exBrack = Capture(exBrack,"expatom");
+    var dot = Char(/\./);
+    var _dot = Capture(dot,"expatom");
 
     var atom = Any(
-      All(unary,optblanks,proton),
-      All(unary,optblanks,preBrack,optblanks,proton,optblanks,exBrack),
+      All(_unary,optblanks,_proton),
+      All(_unary,optblanks,_preBrack,optblanks,_proton,optblanks,_exBrack),
       _Bool,
-      proton
+      _proton
     );
     var _ComplexExp = Y(function(exp){
                         var arg = Y(function(rule){
                                     return Any(
-                                      All(exp,optblanks,commar,optblanks,rule),
+                                      All(exp,optblanks,_commar,optblanks,rule),
                                       exp
                                     );
                                   });
                         var fn = All(
-                          Optional(unary),
+                          Optional(_unary),
                           optblanks,
                           Capture(_NameSpace,"expatom"),
                           optblanks,
-                          preBrack,
+                          _preBrack,
                           optblanks,
                           Optional(arg),
                           optblanks,
-                          exBrack);
+                          _exBrack);
                         var a = Any(fn,atom);
 
                         // foo op bar ...
                         var b = Any(
-                          All(a,optblanks,op,optblanks,exp),
+                          All(a,optblanks,_op,optblanks,exp),
                           a
                         );
                         // (foo op bar)
                         var c = Any(
-                          All(preBrack,optblanks,b,optblanks,exBrack),
+                          All(_preBrack,optblanks,b,optblanks,_exBrack),
                           b
                         );
 
                         // !(foo op bar)
-                        var d = All(Optional(unary),optblanks,c);
+                        var d = All(Optional(_unary),optblanks,c);
 
                         // exp.toString()
                         // var e = Any(
@@ -274,15 +282,15 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
                         // 优化后的e，效果十分明显!!!
                         var e = All(d,
                                     Optional(
-                                      All(optblanks,_Dot,optblanks,_NameSpace,
+                                      All(optblanks,_dot,optblanks,_NameSpace,
                                           Optional(
-                                            All(preBrack,Optional(arg),exBrack)))
+                                            All(_preBrack,Optional(arg),_exBrack)))
                                     ));
 
                         // d的循环
                         var f = Y(function(rule){
                                   return Any(
-                                    All(e,optblanks,op,rule),
+                                    All(e,optblanks,_op,rule),
                                     e
                                   )
                                 });
@@ -293,15 +301,17 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     var _ifExp = Capture(_ComplexExp,"expression");
     _ifExp = Capture(_ifExp,"@ifexpend","@ifexpstart");
 
+    // {#elseif exp}
     var _ElseExpression = All(
       _delimeter_start,
       optblanks,
       _elseif,
-      blanks,
+      optblanks,
       _ifExp,
       _delimeter_end
     );
 
+    // {#else}
     var _ElseStatement = All(
       _delimeter_start,
       optblanks,
@@ -310,6 +320,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
       _delimeter_end
     );
 
+    // {/if}
     var _ElseEnd = All(
       _delimeter_start,
       optblanks,
@@ -327,6 +338,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
     _Expression = Capture(_Expression,"@expressionend","@expressionstart");
 
+    // {#set name = value_exp}
     var _Set = All(
       _delimeter_start,
       Char(/#/),
@@ -342,6 +354,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     );
     _Set = Capture(_Set,"@setend","@setstart");
 
+    // {#include sub_name}
     var _Include = All(
       Str("{#include"),
       optblanks,
@@ -354,6 +367,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
     var _BlockStart = Str("{#block");
     var _BlockEnd = Str("{/block}");
 
+    // {#extend base_name}
     var _Extend = All(
       Str("{#extend"),
       optblanks,
@@ -396,6 +410,7 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         //------------------------------ each ------------------------------
 
         //------------------------------  if  ------------------------------
+        // {#elseif exp} + Rule
         var _ElseIfOne = All(
           _ElseExpression,
           Optional(Capture(Rule,"@ifbodyend","@ifbodystart"))
@@ -404,18 +419,21 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         var _ElseIf = Optional(
           Plus(_ElseIfOne)
         );
+        // {#else} + Rule
         var _Else = Optional(
           All(
             _ElseStatement,
+            optblanks,
             Optional(Rule)
           ));
         _Else = Capture(_Else,"@elseend","@elsestart");
-
+        // {#if exp} + Rule
         var _firstIf = All(
           _delimeter_start,
           _ifStart,
           optblanks,
           _ifExp,
+          optblanks,
           _delimeter_end,
           Optional(Capture(Rule,"@ifbodyend","@ifbodystart"))
         );
@@ -429,9 +447,9 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         If = Capture(If,"@ifend","@ifstart");
         //------------------------------  if  ------------------------------
 
-        //------------------------------  var ------------------------------
+        //------------------------------  exp ------------------------------
         var Expression = _Expression;
-        //------------------------------  var ------------------------------
+        //------------------------------  exp ------------------------------
 
         //------------------------------  set ------------------------------
         var Set = _Set;
@@ -467,7 +485,6 @@ KISSY.add("gallery/temple/1.0/grammar",function(){
         //------------------------------anything------------------------------
         var AnyThingElse = _AnyThing;
         //------------------------------anything------------------------------
-
         return Any(
           Each,
           If,
